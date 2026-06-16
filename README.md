@@ -10,14 +10,22 @@ A static, local-first interface for Mo's LifeOS Evening Sequencer routine.
 
 ## Deploy
 
-This repo is designed for GitHub Pages from the `main` branch root.
-
-Expected URL after deploy:
+Primary app URL:
 
 ```text
-https://<github-username>.github.io/evening-sequencer/
+https://evening-sequencer.vercel.app/
 ```
+
+The Vercel deployment includes the `/api/submit-evening` serverless proxy, which signs submissions and forwards them to the local Hermes webhook endpoint via the configured tunnel.
+
+GitHub Pages static fallback:
+
+```text
+https://mojahama.github.io/evening-sequencer/
+```
+
+The GitHub Pages version can render the form, but it cannot use `/api/submit-evening`; use the Vercel URL for the **Send to Hermes** button.
 
 ## Local use
 
-Open `index.html` directly in a browser.
+Open `index.html` directly in a browser for copy/paste mode, or run `vercel dev` for the API route.
