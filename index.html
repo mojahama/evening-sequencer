@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Evening Sequencer</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel-2: #20242d;
+      --text: #f4f1e8;
+      --muted: #a8adba;
+      --soft: #6f788a;
+      --line: #2d3340;
+      --accent: #d8b56d;
+      --accent-2: #90c7b8;
+      --danger: #e28b7d;
+      --radius: 18px;
+      --shadow: 0 24px 80px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(216,181,109,.15), transparent 32rem),
+        radial-gradient(circle at 88% 12%, rgba(144,199,184,.12), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px; }
+    header {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+    h1 { font-size: clamp(2rem, 4vw, 4.5rem); line-height: .9; letter-spacing: -.06em; margin: 0; }
+    .sub { color: var(--muted); font-size: 1.03rem; line-height: 1.5; margin: 12px 0 0; max-width: 700px; }
+    .topcard { background: rgba(23,26,33,.72); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+    .dateRow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .pill { border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); border-radius: 999px; padding: 7px 11px; font-size: .85rem; }
+    .grid { display: grid; grid-template-columns: 1fr 430px; gap: 20px; align-items: start; }
+    .panel { background: rgba(23,26,33,.86); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .panelTitle { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--line); background: rgba(32,36,45,.68); }
+    .panelTitle h2 { font-size: 1rem; margin: 0; letter-spacing: -.01em; }
+    .steps { display: grid; gap: 12px; padding: 18px; }
+    .step { border: 1px solid var(--line); border-radius: 16px; background: rgba(15,17,21,.42); overflow: hidden; }
+    .stepHead { display:flex; align-items:center; gap:10px; padding: 13px 14px; cursor:pointer; user-select:none; }
+    .num { width: 28px; height: 28px; display:grid; place-items:center; border-radius: 50%; background: rgba(216,181,109,.16); color: var(--accent); font-weight: 700; font-size: .82rem; }
+    .step h3 { margin:0; font-size:.98rem; flex:1; }
+    .hint { color: var(--muted); font-size: .84rem; margin-top: 3px; }
+    .chev { color: var(--soft); transition: transform .18s ease; }
+    .step.open .chev { transform: rotate(90deg); }
+    .stepBody { display:none; padding: 0 14px 14px; }
+    .step.open .stepBody { display:block; }
+    label { display:block; color: var(--muted); font-size: .82rem; margin: 10px 0 6px; }
+    textarea, input, select {
+      width: 100%; border: 1px solid var(--line); border-radius: 13px; background: #10131a; color: var(--text);
+      padding: 11px 12px; outline: none; font: inherit; resize: vertical;
+    }
+    textarea:focus, input:focus, select:focus { border-color: rgba(216,181,109,.7); box-shadow: 0 0 0 3px rgba(216,181,109,.12); }
+    textarea.small { min-height: 76px; }
+    textarea.med { min-height: 115px; }
+    textarea.large { min-height: 185px; }
+    .twocol { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; padding: 0 18px 18px; }
+    button {
+      border: 0; border-radius: 999px; padding: 11px 15px; font-weight: 700; cursor: pointer; color: #111318;
+      background: var(--accent); transition: transform .15s ease, opacity .15s ease, background .15s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
+    button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+    .preview { position: sticky; top: 18px; }
+    .previewBody { padding: 18px; }
+    .output {
+      white-space: pre-wrap; min-height: 520px; background: #0b0d12; border: 1px solid var(--line); border-radius: 14px;
+      padding: 14px; color: #e9e4d8; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86rem; line-height: 1.55;
+    }
+    .status { color: var(--accent-2); font-size: .86rem; min-height: 20px; padding-top: 8px; }
+    .chips { display:flex; flex-wrap:wrap; gap: 8px; margin-top: 8px; }
+    .chip { background: rgba(144,199,184,.12); color: #ccebe3; border: 1px solid rgba(144,199,184,.25); padding: 7px 10px; border-radius: 999px; font-size:.82rem; cursor: pointer; }
+    .micro { color: var(--soft); font-size:.78rem; margin-top: 7px; }
+    @media (max-width: 940px) { header, .grid { grid-template-columns: 1fr; } .preview { position: static; } .twocol { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Evening<br/>Sequencer</h1>
+        <p class="sub">A low-friction night interface: capture gratitude, open loops, body state, and tomorrow’s first shape. Then copy the generated markdown back to Hermes for the full plan + yoga pick.</p>
+      </div>
+      <div class="topcard">
+        <div class="dateRow">
+          <span class="pill" id="todayPill">Tonight</span>
+          <span class="pill">Tomorrow-first planning</span>
+        </div>
+        <p class="sub" style="font-size:.94rem;margin-top:14px">Rule: don’t solve tomorrow tonight. Give future Hermes enough signal to sequence it.</p>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panelTitle">
+          <h2>Check-in fields</h2>
+          <span class="pill" id="progress">0 / 8 touched</span>
+        </div>
+        <div class="steps" id="steps">
+          <article class="step open"><div class="stepHead"><span class="num">1</span><div><h3>Gratitude</h3><div class="hint">1–3 things from today. Specific beats grand.</div></div><span class="chev">›</span></div><div class="stepBody"><textarea id="gratitude" class="small" placeholder="Example: I’m grateful I showed up at work even tired; grateful for Layla; grateful I didn’t spiral."></textarea><div class="chips"><span class="chip" data-target="gratitude">family</span><span class="chip" data-target="gratitude">work signal</span><span class="chip" data-target="gratitude">body held up</span></div></div></article>
+          <article class="step"><div class="stepHead"><span class="num">2</span><div><h3>Excited for tomorrow</h3><div class="hint">What feels meaningful, interesting, or even slightly good?</div></div><span class="chev">›</span></div><div class="stepBody"><textarea id="excited" class="small" placeholder="Example: Seeing my mom; a cleaner work handoff; getting back to yoga; writing one Sushism."></textarea></div></article>
+          <article class="step"><div class="stepHead"><span class="num">3</span><div><h3>Positive frame</h3><div class="hint">A kind frame for tomorrow, not a motivational poster.</div></div><span class="chev">›</span></div><div class="stepBody"><textarea id="frame" class="small" placeholder="Example: Tomorrow can be a repair day, not a punishment day."></textarea></div></article>
+          <article class="step"><div class="stepHead"><span class="num">4</span><div><h3>Work-wise</h3><div class="hint">Must-dos, meetings, deadlines, open loops.</div></div><span class="chev">›</span></div><div class="stepBody"><textarea id="work" class="med" placeholder="Example: PDF ingestion; feedback dashboard; squad reports; 11am meeting; first Monday move."></textarea></div></article>
+          <article class="step"><div class="stepHead"><span class="num">5</span><div><h3>For myself</h3><div class="hint">One thing that makes tomorrow feel like yours.</div></div><span class="chev">›</span></div><div class="stepBody"><textarea id="self" class="small" placeholder="Example: Yoga before screens; 20 min Sushisms; walk; call cousin Mo; prayer/zikr."></textarea></div></article>
+          <article class="step"><div class="stepHead"><span class="num">6</span><div><h3>Journal notes</h3><div class="hint">Up to ~400 words. Messy is fine.</div></div><span class="chev">›</span></div><div class="stepBody"><textarea id="journal" class="large" placeholder="Dump whatever the day actually felt like..."></textarea><div class="micro"><span id="wordCount">0</span> words</div></div></article>
+          <article class="step"><div class="stepHead"><span class="num">7</span><div><h3>Energy/body</h3><div class="hint">Make the plan fit your actual nervous system.</div></div><span class="chev">›</span></div><div class="stepBody"><div class="twocol"><div><label for="energy">Energy</label><select id="energy"><option value="">Choose…</option><option>low</option><option>medium</option><option>high</option></select></div><div><label for="yogaWindow">Morning yoga window</label><input id="yogaWindow" placeholder="e.g. 8:15am / 25 min / before work" /></div></div><label for="body">Soreness / constraints</label><textarea id="body" class="small" placeholder="Example: hips tight, low sleep, back okay, need something under 30 min."></textarea></div></article>
+          <article class="step"><div class="stepHead"><span class="num">8</span><div><h3>Tomorrow constraints</h3><div class="hint">Fixed commitments, family, travel, meetings.</div></div><span class="chev">›</span></div><div class="stepBody"><textarea id="constraints" class="small" placeholder="Example: family birthday in afternoon; meeting at 11; errands before noon."></textarea></div></article>
+        </div>
+        <div class="actions">
+          <button id="generate">Generate Hermes reply</button>
+          <button class="secondary" id="copy">Copy markdown</button>
+          <button class="ghost" id="clear">Clear</button>
+        </div>
+      </section>
+
+      <aside class="panel preview">
+        <div class="panelTitle"><h2>Copy/paste output</h2><span class="pill">Discord-ready</span></div>
+        <div class="previewBody">
+          <div class="output" id="output">Fill a few fields, then click “Generate Hermes reply.”</div>
+          <div class="status" id="status"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+  const ids = ['gratitude','excited','frame','work','self','journal','energy','yogaWindow','body','constraints'];
+  const mainIds = ['gratitude','excited','frame','work','self','journal','energy','yogaWindow'];
+  const $ = id => document.getElementById(id);
+  const today = new Date();
+  $('todayPill').textContent = today.toLocaleDateString(undefined, { weekday:'long', month:'short', day:'numeric' });
+
+  document.querySelectorAll('.stepHead').forEach(head => head.addEventListener('click', () => head.closest('.step').classList.toggle('open')));
+
+  function touchedCount(){ return mainIds.filter(id => ($(id).value || '').trim().length > 0).length; }
+  function save(){ const data = {}; ids.forEach(id => data[id] = $(id).value); localStorage.setItem('eveningSequencerDraft', JSON.stringify(data)); updateMeta(); }
+  function load(){ try { const data = JSON.parse(localStorage.getItem('eveningSequencerDraft') || '{}'); ids.forEach(id => { if(data[id]) $(id).value = data[id]; }); } catch(e){} updateMeta(); }
+  function updateMeta(){ $('progress').textContent = `${touchedCount()} / 8 touched`; const words = ($('journal').value.trim().match(/\S+/g) || []).length; $('wordCount').textContent = words; }
+  ids.forEach(id => $(id).addEventListener('input', save));
+  document.querySelectorAll('.chip').forEach(chip => chip.addEventListener('click', () => { const t = $(chip.dataset.target); t.value = (t.value ? t.value + '; ' : '') + chip.textContent; save(); }));
+
+  function val(id){ return ($(id).value || '').trim() || '—'; }
+  function generate(){
+    const text = `# Evening Sequencer reply\n\n**Gratitude:**\n${val('gratitude')}\n\n**Excited for tomorrow:**\n${val('excited')}\n\n**Positive frame:**\n${val('frame')}\n\n**Work-wise:**\n${val('work')}\n\n**For myself:**\n${val('self')}\n\n**Journal notes:**\n${val('journal')}\n\n**Energy/body:**\nEnergy: ${val('energy')}\nBody/constraints: ${val('body')}\n\n**Morning yoga window:**\n${val('yogaWindow')}\n\n**Fixed constraints / commitments:**\n${val('constraints')}\n\nPlease turn this into: top 3 priorities, a tomorrow sequence, one clearly labeled Morning yoga pick, and one small “future me will thank me” action.`;
+    $('output').textContent = text;
+    $('status').textContent = 'Generated. Paste this into the Evening Sequencer thread.';
+  }
+  $('generate').addEventListener('click', generate);
+  $('copy').addEventListener('click', async () => {
+    if($('output').textContent.startsWith('Fill a few fields')) generate();
+    try { await navigator.clipboard.writeText($('output').textContent); $('status').textContent = 'Copied to clipboard.'; }
+    catch(e){ $('status').textContent = 'Copy failed; select the preview text manually.'; }
+  });
+  $('clear').addEventListener('click', () => { if(confirm('Clear this evening draft?')) { ids.forEach(id => $(id).value = ''); localStorage.removeItem('eveningSequencerDraft'); $('output').textContent = 'Fill a few fields, then click “Generate Hermes reply.”'; $('status').textContent = 'Cleared.'; updateMeta(); } });
+  load();
+</script>
+</body>
+</html>
