@@ -122,6 +122,7 @@
         </div>
         <div class="actions">
           <button id="generate">Generate Hermes reply</button>
+          <button class="secondary" id="sendHermes">Send to Hermes</button>
           <button class="secondary" id="copy">Copy markdown</button>
           <button class="ghost" id="clear">Clear</button>
         </div>
@@ -159,7 +160,43 @@
     $('output').textContent = text;
     $('status').textContent = 'Generated. Paste this into the Evening Sequencer thread.';
   }
+  function buildPayload(){
+    return {
+      source: 'evening-sequencer-web',
+      version: 1,
+      pageUrl: window.location.href,
+      fields: {
+        gratitude: val('gratitude'),
+        excited: val('excited'),
+        positiveFrame: val('frame'),
+        workWise: val('work'),
+        forMyself: val('self'),
+        journalNotes: val('journal'),
+        energy: val('energy'),
+        body: val('body'),
+        morningYogaWindow: val('yogaWindow'),
+        constraints: val('constraints')
+      }
+    };
+  }
+  async function sendToHermes(){
+    generate();
+    $('status').textContent = 'Sending to Hermes…';
+    try {
+      const response = await fetch('/api/submit-evening', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildPayload())
+      });
+      const data = await response.json().catch(() => ({}));
+      if(!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+      $('status').textContent = 'Sent to Hermes. Keep this tab open as fallback until the Discord reply lands.';
+    } catch(e){
+      $('status').textContent = `Send failed: ${e.message}. Copy/paste still works.`;
+    }
+  }
   $('generate').addEventListener('click', generate);
+  $('sendHermes').addEventListener('click', sendToHermes);
   $('copy').addEventListener('click', async () => {
     if($('output').textContent.startsWith('Fill a few fields')) generate();
     try { await navigator.clipboard.writeText($('output').textContent); $('status').textContent = 'Copied to clipboard.'; }

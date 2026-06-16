@@ -1,0 +1,13 @@
+{
+  "name": "evening-sequencer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static interface and Vercel webhook proxy for Mo's LifeOS Evening Sequencer",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
