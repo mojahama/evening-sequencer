@@ -55,19 +55,32 @@ Cons:
 - If called directly from GitHub Pages, the HMAC secret cannot be safely hidden.
 - Better for private testing than a durable public setup.
 
-### Option C — Cloudflare Worker proxy
+### Option C — Serverless proxy: Cloudflare Worker or Vercel function
 
-GitHub Pages submits to a Worker. Worker validates a simple public payload, signs the request with the Hermes webhook secret, and forwards to Hermes.
+GitHub Pages submits to a tiny serverless endpoint. The endpoint validates a simple public payload, signs the request with the Hermes webhook secret, and forwards to Hermes.
+
+Cloudflare Worker version:
+
+- Best if the Hermes endpoint is exposed through Cloudflare Tunnel or a Cloudflare-managed domain.
+- Very small, fast, cheap, and easy to pair with Cloudflare rate limiting/access rules.
+
+Vercel version:
+
+- Also totally viable.
+- Best if we want to evolve the static prototype into a Next.js/Vercel app.
+- Uses Vercel environment variables for the Hermes webhook URL and secret.
+- API route/serverless function signs and forwards the payload.
 
 Pros:
 - Secure enough for a public static app.
 - Keeps secrets off the client.
-- Easy to extend with rate limits and allowed origins.
+- Easy to extend with rate limits, origin checks, idempotency, and structured responses.
 
 Cons:
 - Requires a tiny backend deployment.
+- Still needs Hermes to be reachable from the serverless function, usually via tunnel or hosted gateway.
 
-Recommended durable path: **Option C**.
+Recommended durable path: **Option C with Vercel if we expect the UI to grow into a product; Cloudflare Worker if we want the smallest possible proxy.**
 
 ## Implementation steps
 
